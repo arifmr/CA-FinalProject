@@ -1,0 +1,24 @@
+username: arifmr, method: Login, action: username:arifmr has logged in
+username: arifmr, method: Create File, action: File data.txt successfully created by arifmr
+username: arifmr, method: Add Data, action: Rachel 20 Female added to file data.txt by arifmr
+username: arifmr, method: Read File Data, action: Data on File data.txt have been seen by arifmr
+username: arifmr, method: Update Data, action: Rachel 20 Female have been updated to Richel 20 Male by arifmr
+username: arifmr, method: Read File Data, action: Data on File data.txt have been seen by arifmr
+username: arifmr, method: Delete Data, action: Richel 20 Male have been deleted by arifmr
+username: arifmr, method: Read File Data, action: Data on File data.txt have been seen by arifmr
+username: arifmr, method: Logout, action: arifmr has logged outusername: richel, method: Login, action: username:richel has logged in
+username: richel, method: Logout, action: richel has logged outusername: arifmr, method: Login, action: username: arifmr has logged in
+username: arifmr, method: Read File Data, action: Data on File data.txt have been seen by arifmr
+username: arifmr, method: Login, action: username: arifmr has logged in
+username: arifmr, method: Read File Data, action: Data on File data.txt have been seen by arifmr
+username: arifmr, method: Logout, action: username: arifmr has logged outusername: arifmr, method: Login, action: username: arifmr has logged in
+username: arifmr, method: Read File Data, action: Data on File data.txt have been seen by arifmr
+username: arifmr, method: Logout, action: username: arifmr has logged outusername: arifmr, method: Login, action: username: arifmr has logged in
+username: arifmr, method: Read File Data, action: Data on File data.txt have been seen by arifmr
+username: arifmr, method: Logout, action: username: arifmr has logged outusername: arifmr, method: Login, action: username: arifmr has logged in
+username: arifmr, method: Read File Data, action: Data on File data.txt have been seen by arifmr
+username: arifmr, method: Logout, action: username: arifmr has logged outusername: arifmr, method: Login, action: username: arifmr has logged in
+username: arifmr, method: Read File Data, action: Data on File data.txt have been seen by arifmr
+username: arifmr, method: Logout, action: username: arifmr has logged outusername: arifmr, method: Login, action: username: arifmr has logged in
+username: arifmr, method: Read File Data, action: Data on File data.txt have been seen by arifmr
+username: arifmr, method: Logout, action: username: arifmr has logged out
