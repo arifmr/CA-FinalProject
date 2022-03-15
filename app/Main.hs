@@ -14,18 +14,24 @@ import Data.Functor.Identity
 main :: IO ()
 main = do
     putStrLn "\nWelcome to Covid-19 Patient List App"
+
     a <- doesFileExist "account.txt"
     b <- doesFileExist "username.txt"
     c <- doesFileExist "currentLogin.txt"
     d <- doesFileExist "log.txt"
+    e <- doesFileExist "patient.txt"
+
     if a then return ()
-        else writeFile "account.txt" ""
+        else writeFile "account.txt" "admin admin\n"
     if b then return ()
-        else writeFile "username.txt" ""
+        else writeFile "username.txt" "admin\n"
     if c then return ()
         else writeFile "currentLogin.txt" ""
     if d then return ()
         else writeFile "log.txt" ""
+    if e then return ()
+        else writeFile "patient.txt" ""
+
     putStrLn "\nPlease login first. If you don't have an account please register first\n(l) Login (r) Register (x) Exit"
     answer <- getLine
     case answer of
@@ -54,7 +60,7 @@ login = do
     if (username ++ " " ++ password) `elem` splittedData
         then do
             putStrLn "Login Successfully!"
-            writeFile "currentLogin.txt" (username)
+            writeFile "currentLogin.txt" username
             let log = "username: " ++ username ++ " has logged in\n"
             createLog "Login" log
             putStrLn ("\n" ++ log)
@@ -66,7 +72,7 @@ login = do
 logout :: IO ()
 logout = do
     username <- getCurrentUser
-    let log = "username: " ++ username ++ " has logged out"
+    let log = "username: " ++ username ++ " has logged out\n"
     createLog "Logout" log
     writeFile "currentLogin.txt" ""
     putStrLn ("\n" ++ log)
@@ -123,16 +129,16 @@ withEcho echo action = do
 
 pilihanMenu :: IO ()
 pilihanMenu = do
-    putStrLn "\n(a) Add New Patient Data (c) Create File (d) Delete Patient Data (r) Read File (u) Update Patient Data (x) Logout\n"
+    putStrLn "\n(a) Add New Patient Data (d) Delete Patient Data (r) Read File (u) Update Patient Data (x) Logout\n"
     menu <- getLine
     putStrLn "\n"
     case menu of
         "a" -> do
             addData
             pilihanMenu
-        "c" -> do
-            createFile
-            pilihanMenu
+        -- "c" -> do
+        --     createFile
+        --     pilihanMenu
         "d" -> do
             deleteData
             pilihanMenu
@@ -163,127 +169,100 @@ setLog user method action = do
 getCurrentUser :: IO String 
 getCurrentUser = readFile "currentLogin.txt"
 
-createFile :: IO ()
-createFile = do
-    putStrLn "Please Enter File Name Without Extension: \n(Example: log instead of log.txt)"
-    fileName <- getLine
-    writeFile (fileName ++ ".txt") ""
-    username <- getCurrentUser
-    let log = "File " ++ fileName ++ ".txt" ++ " successfully created by " ++ username ++ "\n"
-    createLog "Create File" log
+-- createFile :: IO ()
+-- createFile = do
+--     putStrLn "Please Enter File Name Without Extension: \n(Example: log instead of log.txt)"
+--     fileName <- getLine
+--     writeFile (fileName ++ ".txt") ""
+--     username <- getCurrentUser
+--     let log = "File " ++ fileName ++ ".txt" ++ " successfully created by " ++ username ++ "\n"
+--     createLog "Create File" log
 
 addData :: IO ()
 addData = do
-    putStrLn "Where do you want to save the data? -don't put the extension\n(Example: log instead of log.txt)"
-    fileName <- getLine
-    a <- doesFileExist (fileName ++ ".txt")
-    if a then do
-            putStrLn "Enter Patient Name: "
-            patientName <- getLine
+    putStrLn "Enter Patient Name: "
+    patientName <- getLine
 
-            putStrLn "Enter Patient Age: "
-            patientAge <- getLine
+    putStrLn "Enter Patient Age: "
+    patientAge <- getLine
 
-            putStrLn "Enter Patient Gender: "
-            patientGender <- getLine
+    putStrLn "Enter Patient Gender: "
+    patientGender <- getLine
 
-            username <- getCurrentUser
-            let log = patientName ++ " " ++ patientAge ++ " " ++ patientGender ++ " added to file " ++ fileName ++ ".txt by " ++ username
+    username <- getCurrentUser
+    let log = patientName ++ " " ++ patientAge ++ " " ++ patientGender ++ " added to file " ++ "patient.txt by " ++ username
 
-            appendFile (fileName ++ ".txt") (patientName ++ " " ++ patientAge ++ " " ++ patientGender ++ "\n")
-            createLog "Add Data" (log ++ "\n")
-            putStrLn ("\n" ++ log)
-        else do
-            putStrLn "File doesn't exist\n"
-            addData
+    appendFile "patient.txt" (patientName ++ " " ++ patientAge ++ " " ++ patientGender ++ "\n")
+    createLog "Add Data" (log ++ "\n")
+    putStrLn ("\n" ++ log)
 
 readFileData :: IO ()
 readFileData = do
-    putStrLn "Please Enter File Name Without Extension: \n(Example: log instead of log.txt)"
-    fileName <- getLine
-    a <- doesFileExist (fileName ++ ".txt")
-    if a then do
-            putStrLn "\n"
-            listData <- readFile (fileName ++ ".txt")
-            if listData == "" then putStrLn "This File is still empty"
-            else do
-                let splittedData = Data.List.Split.splitOn "\n" listData
-                mapM_ putStrLn splittedData
-            username <- getCurrentUser
-            let log = "Data on File " ++ fileName ++ ".txt have been seen by " ++ username ++ "\n"
-            createLog "Read File Data" log
-            putStrLn ("\n" ++ log)
-        else do
-            putStrLn "File doesn't exist\n"
-            readFileData
+    putStrLn "\n"
+    listData <- readFile "patient.txt"
+    if listData == "" then putStrLn "This file is still empty"
+    else do
+        let splittedData = Data.List.Split.splitOn "\n" listData
+        mapM_ putStrLn splittedData
+    username <- getCurrentUser
+    let log = "Data on file patient.txt have been seen by " ++ username ++ "\n"
+    createLog "Read File Data" log
+    putStrLn ("\n" ++ log)
 
 updateData :: IO ()
 updateData = do
-    putStrLn "\nPlease Enter File Name Without Extension: \n(Example: log instead of log.txt)"
-    fileName <- getLine
-    a <- doesFileExist (fileName ++ ".txt")
-    if a then do
-            listData <- readFile (fileName ++ ".txt")
-            let splittedData = Data.List.Split.splitOn "\n" listData
+    listData <- readFile "patient.txt"
+    let splittedData = Data.List.Split.splitOn "\n" listData
 
-            putStrLn "\nPlease Enter the Name of the Patient You Want to Update: \n(Example: John Doe)"
-            patientName <- getLine
-            putStrLn "\nPlease Enter the Age of the Patient You Want to Update: \n(Example: 50)"
-            patientAge <- getLine
-            putStrLn "\nPlease Enter the Gender of the Patient You Want to Update: \n(Example: Male)"
-            patientGender <- getLine
-            putStrLn "\n"
-            let patientData = patientName ++ " " ++ patientAge ++ " " ++ patientGender
-            if patientData `elem` splittedData
-                then do
-                    putStrLn "\nPlease Enter the Patient New Name: \n(Example: John Doe)"
-                    newPatientName <- getLine
-                    putStrLn "\nPlease Enter the Patient New Age: \n(Example: 50)"
-                    newPatientAge <- getLine
-                    putStrLn "\nPlease Enter the Patient New Gender: \n(Example: Male)"
-                    newPatientGender <- getLine
-                    let newData = newPatientName ++ " " ++ newPatientAge ++ " " ++ newPatientGender
-                    let newListData = Data.Text.replace (pack patientData) (pack newData) (pack listData)
-                    writeFile (fileName ++ "2" ++ ".txt") (unpack newListData)
-                    removeFile (fileName ++ ".txt")
-                    renameFile (fileName ++ "2" ++ ".txt") (fileName ++ ".txt")
-                    username <- getCurrentUser
-                    let log = patientData ++ " have been updated to " ++ newData ++ " by " ++ username
-                    createLog "Update Data" (log ++ "\n")
-                    putStrLn ("\n" ++ log)
-                else putStrLn "No Data Found"
-        else do
-            putStrLn "File doesn't exist\n"
-            updateData
+    putStrLn "\nPlease Enter the Name of the Patient You Want to Update: \n(Example: John Doe)"
+    patientName <- getLine
+    putStrLn "\nPlease Enter the Age of the Patient You Want to Update: \n(Example: 50)"
+    patientAge <- getLine
+    putStrLn "\nPlease Enter the Gender of the Patient You Want to Update: \n(Example: Male)"
+    patientGender <- getLine
+    putStrLn "\n"
+
+    let patientData = patientName ++ " " ++ patientAge ++ " " ++ patientGender
+    if patientData `elem` splittedData then do
+        putStrLn "\nPlease Enter the Patient New Name: \n(Example: John Doe)"
+        newPatientName <- getLine
+        putStrLn "\nPlease Enter the Patient New Age: \n(Example: 50)"
+        newPatientAge <- getLine
+        putStrLn "\nPlease Enter the Patient New Gender: \n(Example: Male)"
+        newPatientGender <- getLine
+        let newData = newPatientName ++ " " ++ newPatientAge ++ " " ++ newPatientGender
+        let newListData = Data.Text.replace (pack patientData) (pack newData) (pack listData)
+        writeFile "patient2.txt" (unpack newListData)
+        removeFile "patient.txt"
+        renameFile "patient2.txt" "patient.txt"
+        username <- getCurrentUser
+        let log = patientData ++ " have been updated to " ++ newData ++ " by " ++ username
+        createLog "Update Data" (log ++ "\n")
+        putStrLn ("\n" ++ log)
+    else putStrLn "No Data Found"
 
 deleteData :: IO ()
 deleteData = do
-    putStrLn "\nPlease Enter File Name Without Extension: \n(Example: log instead of log.txt)"
-    fileName <- getLine
-    a <- doesFileExist (fileName ++ ".txt")
-    if a then do
-            listData <- readFile (fileName ++ ".txt")
-            let splittedData = Data.List.Split.splitOn "\n" listData
+    listData <- readFile "patient.txt"
+    let splittedData = Data.List.Split.splitOn "\n" listData
 
-            putStrLn "\nPlease Enter the Name of the Patient You Want to Delete: \n(Example: John Doe)"
-            patientName <- getLine
-            putStrLn "\nPlease Enter the Age of the Patient You Want to Delete: \n(Example: 50)"
-            patientAge <- getLine
-            putStrLn "\nPlease Enter the Gender of the Patient You Want to Delete: \n(Example: Male)"
-            patientGender <- getLine
-            putStrLn "\n"
-            let patientData = patientName ++ " " ++ patientAge ++ " " ++ patientGender
-            if patientData `elem` splittedData
-                then do
-                    let newListData = Data.Text.replace (pack (patientData ++ "\n")) (pack "") (pack listData)
-                    writeFile (fileName ++ "2" ++ ".txt") (unpack newListData)
-                    removeFile (fileName ++ ".txt")
-                    renameFile (fileName ++ "2" ++ ".txt") (fileName ++ ".txt")
-                    username <- getCurrentUser
-                    let log = patientData ++ " have been deleted by " ++ username
-                    createLog "Delete Data" (log ++ "\n")
-                    putStrLn ("\n" ++ log)
-                else putStrLn "No Data Found"
-        else do 
-            putStrLn "File doesn't exist\n"
-            deleteData 
+    putStrLn "\nPlease Enter the Name of the Patient You Want to Delete: \n(Example: John Doe)"
+    patientName <- getLine
+    putStrLn "\nPlease Enter the Age of the Patient You Want to Delete: \n(Example: 50)"
+    patientAge <- getLine
+    putStrLn "\nPlease Enter the Gender of the Patient You Want to Delete: \n(Example: Male)"
+    patientGender <- getLine
+    putStrLn "\n"
+
+    let patientData = patientName ++ " " ++ patientAge ++ " " ++ patientGender
+    if patientData `elem` splittedData
+        then do
+            let newListData = Data.Text.replace (pack (patientData ++ "\n")) (pack "") (pack listData)
+            writeFile "patient2.txt" (unpack newListData)
+            removeFile "patient.txt"
+            renameFile "patient2.txt" "patient.txt"
+            username <- getCurrentUser
+            let log = patientData ++ " on file patient.txt have been deleted by " ++ username
+            createLog "Delete Data" (log ++ "\n")
+            putStrLn ("\n" ++ log)
+        else putStrLn "No Data Found"
