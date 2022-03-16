@@ -1,4 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+{-# HLINT ignore "Use when" #-}
 import Data.List.Split ( splitOn )
 import Data.Char ( toLower, isSpace )
 import Data.List ( elemIndices, dropWhileEnd, dropWhile )
@@ -22,7 +24,7 @@ main = do
     e <- doesFileExist "patient.txt"
 
     if a then return ()
-        else writeFile "account.txt" "admin admin\n"
+        else writeFile "account.txt" "admin<==================>admin\n"
     if b then return ()
         else writeFile "username.txt" "admin\n"
     if c then return ()
@@ -57,7 +59,8 @@ login = do
     putChar '\n'
     accountList <- readFile "account.txt"
     let splittedData = Data.List.Split.splitOn "\n" accountList
-    if (username ++ " " ++ password) `elem` splittedData
+
+    if (username ++ "<==================>" ++ password) `elem` splittedData
         then do
             putStrLn "Login Successfully!"
             writeFile "currentLogin.txt" username
@@ -68,6 +71,10 @@ login = do
         else do
             putStrLn "Incorrect username or password"
             login
+
+    writeFile "account2.txt" accountList
+    removeFile "account.txt"
+    renameFile "account2.txt" "account.txt"
 
 logout :: IO ()
 logout = do
@@ -82,7 +89,7 @@ register = do
     username <- getUsername
     password <- getPassword
     appendFile "username.txt" (username ++ "\n")
-    appendFile "account.txt" (username ++ " " ++ password ++ "\n")
+    appendFile "account.txt" (username ++ "<==================>" ++ password ++ "\n")
     putStrLn "Account Created Successfully!"
 
 getUsername :: IO String
@@ -97,7 +104,7 @@ getUsername = do
             if username `elem` splittedData
                 then do
                     putStrLn "Username already used"
-                    putChar '\n'
+                    putStrLn "\n"
                     getUsername
                 else do
                     writeFile "username2.txt" usernameList
@@ -106,7 +113,7 @@ getUsername = do
                     return username
         else do
             putStrLn "Username length must be greater than 4"
-            putChar '\n'
+            putStrLn "\n"
             getUsername
 
 getPassword :: IO String
@@ -114,12 +121,13 @@ getPassword = do
     putStr "Password: "
     hFlush stdout
     pass <- withEcho False getLine
-    if length pass > 4
+    if length pass > 4 && length pass <= 25
         then do
-            putChar '\n'
+            putStrLn "\n"
             return pass
         else do
-            putStrLn "Password length must be greater than 4"
+            putStrLn "Password length must be greater than 4 and less than equal 25"
+            putStrLn "\n"
             getPassword
 
 withEcho :: Bool -> IO a -> IO a
@@ -154,7 +162,7 @@ pilihanMenu = do
         _   -> do
             putStrLn "Please choose first letter from menu!"
             pilihanMenu
-    
+
 createLog :: String -> String -> IO ()
 createLog method action = do
     user <- getCurrentUser
@@ -166,7 +174,7 @@ setLog user method action = do
     tell $ method ++ ", " ++ action
     return user
 
-getCurrentUser :: IO String 
+getCurrentUser :: IO String
 getCurrentUser = readFile "currentLogin.txt"
 
 -- createFile :: IO ()
@@ -180,21 +188,34 @@ getCurrentUser = readFile "currentLogin.txt"
 
 addData :: IO ()
 addData = do
-    putStrLn "Enter Patient Name: "
-    patientName <- getLine
+    putStrLn "Enter Patient Name: (Example: John Doe) (Max 25 Character)"
+    patientName <- getInput "Name" 25
 
-    putStrLn "Enter Patient Age: "
-    patientAge <- getLine
+    putStrLn "Enter Patient Age: (Example: 20) (Max 3 Character)"
+    patientAge <- getInput "Age" 3
 
-    putStrLn "Enter Patient Gender: "
-    patientGender <- getLine
+    putStrLn "Enter Patient Gender: (Example: 20) (Max 10 Character)"
+    patientGender <- getInput "Gender" 10
 
     username <- getCurrentUser
-    let log = patientName ++ " " ++ patientAge ++ " " ++ patientGender ++ " added to file " ++ "patient.txt by " ++ username
+    let log = patientName ++ "-" ++ patientAge ++ "-" ++ patientGender ++ " added to file " ++ "patient.txt by " ++ username
 
-    appendFile "patient.txt" (patientName ++ " " ++ patientAge ++ " " ++ patientGender ++ "\n")
+    appendFile "patient.txt" (patientName ++ "-" ++ patientAge ++ "-" ++ patientGender ++ "\n")
     createLog "Add Data" (log ++ "\n")
     putStrLn ("\n" ++ log)
+
+getInput :: String -> Int -> IO String
+getInput field n = do
+    putStr ("\n" ++ field ++ ": ")
+    hFlush stdout
+    value <- withEcho True getLine
+    putStrLn "\n"
+    if length value <= n
+        then do
+            return value
+        else do
+            putStrLn (field ++ " length must be less than equal " ++ show n ++ "\n")
+            getInput field n
 
 readFileData :: IO ()
 readFileData = do
@@ -203,34 +224,85 @@ readFileData = do
     if listData == "" then putStrLn "This file is still empty"
     else do
         let splittedData = Data.List.Split.splitOn "\n" listData
-        mapM_ putStrLn splittedData
+        cetak splittedData
     username <- getCurrentUser
     let log = "Data on file patient.txt have been seen by " ++ username ++ "\n"
     createLog "Read File Data" log
     putStrLn ("\n" ++ log)
+    writeFile "patient2.txt" listData
+    removeFile "patient.txt"
+    renameFile "patient2.txt" "patient.txt"
+
+cetak :: [String] -> IO()
+cetak patientList = do
+    putStrLn "--------------------------------------------------------------"
+    putStrLn "No.  |          Nama            |    Age    |     Gender     |"
+    putStrLn "--------------------------------------------------------------"
+    getValue patientList 0
+    putStrLn "--------------------------------------------------------------"
+
+getValue :: [String] -> Int -> IO ()
+getValue patientList urutan = do
+    let no = urutan + 1
+    getOneLine patientList no
+
+getOneLine :: [String] -> Int ->  IO()
+getOneLine patientData n = do
+    let num = n - 1
+    if length patientData > n
+        then do
+        let patient = patientData !! num
+        let name = head (splitOn "-" patient)
+        let age = splitOn "-" patient !! 1
+        let gender = splitOn "-" patient !! 2
+
+        let panjangChar1 = length (show n)
+        let panjangspace1 = 6 - panjangChar1
+
+        let panjangChar2 = length name
+        let panjangspace2 = 27 - panjangChar2
+
+        let panjangChar3 = length age
+        let panjangspace3 = 12 - panjangChar3
+
+        let panjangChar4 = length gender
+        let panjangspace4 = 17 - panjangChar4
+
+        let printData = show n  ++ addSpace panjangspace1 ++ "|" ++ name ++ addSpace panjangspace2 ++ "|" ++ age  ++ addSpace panjangspace3 ++ "|" ++ gender ++ addSpace panjangspace4 ++ "|"
+        putStrLn printData
+        getOneLine patientData (n + 1)
+    else return ()
+
+addSpace :: Int -> String
+addSpace n = remspace (unwords (replicate n "-"))
+
+remspace :: String -> String
+remspace [] = []
+remspace ('-':xs) = remspace xs
+remspace (x:xs)   = x: remspace xs
 
 updateData :: IO ()
 updateData = do
     listData <- readFile "patient.txt"
     let splittedData = Data.List.Split.splitOn "\n" listData
 
-    putStrLn "\nPlease Enter the Name of the Patient You Want to Update: \n(Example: John Doe)"
-    patientName <- getLine
-    putStrLn "\nPlease Enter the Age of the Patient You Want to Update: \n(Example: 50)"
-    patientAge <- getLine
-    putStrLn "\nPlease Enter the Gender of the Patient You Want to Update: \n(Example: Male)"
-    patientGender <- getLine
+    putStrLn "\nPlease Enter The Existing Patient Name: \n(Example: John Doe) (Max 25 Character)"
+    patientName <- getInput "Name" 25
+    putStrLn "\nPlease Enter The Existing Patient Age: \n(Example: 50) (Max 3 Character)"
+    patientAge <- getInput "Age" 3
+    putStrLn "\nPlease Enter The Existing Patient Gender: \n(Example: Male) (Max 10 Character)"
+    patientGender <- getInput "Gender" 10
     putStrLn "\n"
 
-    let patientData = patientName ++ " " ++ patientAge ++ " " ++ patientGender
+    let patientData = patientName ++ "-" ++ patientAge ++ "-" ++ patientGender
     if patientData `elem` splittedData then do
-        putStrLn "\nPlease Enter the Patient New Name: \n(Example: John Doe)"
-        newPatientName <- getLine
-        putStrLn "\nPlease Enter the Patient New Age: \n(Example: 50)"
-        newPatientAge <- getLine
-        putStrLn "\nPlease Enter the Patient New Gender: \n(Example: Male)"
-        newPatientGender <- getLine
-        let newData = newPatientName ++ " " ++ newPatientAge ++ " " ++ newPatientGender
+        putStrLn "\nPlease Enter New Patient Name: \n(Example: John Doe) (Max 25 Character)"
+        newPatientName <- getInput "Name" 25
+        putStrLn "\nPlease Enter New Patient Age: \n(Example: 50) (Max 3 Character)"
+        newPatientAge <- getInput "Age" 3
+        putStrLn "\nPlease Enter New Patient Gender: \n(Example: Male) (Max 10 Character)"
+        newPatientGender <- getInput "Gender" 10
+        let newData = newPatientName ++ "-" ++ newPatientAge ++ "-" ++ newPatientGender
         let newListData = Data.Text.replace (pack patientData) (pack newData) (pack listData)
         writeFile "patient2.txt" (unpack newListData)
         removeFile "patient.txt"
@@ -246,15 +318,15 @@ deleteData = do
     listData <- readFile "patient.txt"
     let splittedData = Data.List.Split.splitOn "\n" listData
 
-    putStrLn "\nPlease Enter the Name of the Patient You Want to Delete: \n(Example: John Doe)"
-    patientName <- getLine
-    putStrLn "\nPlease Enter the Age of the Patient You Want to Delete: \n(Example: 50)"
-    patientAge <- getLine
-    putStrLn "\nPlease Enter the Gender of the Patient You Want to Delete: \n(Example: Male)"
-    patientGender <- getLine
+    putStrLn "\nPlease Enter the Name of the Patient You Want to Delete: \n(Example: John Doe) (Max 25 Character)"
+    patientName <- getInput "Name" 25
+    putStrLn "\nPlease Enter the Age of the Patient You Want to Delete: \n(Example: 50) (Max 3 Character)"
+    patientAge <- getInput "Age" 3
+    putStrLn "\nPlease Enter the Gender of the Patient You Want to Delete: \n(Example: Male) (Max 10 Character)"
+    patientGender <- getInput "Gender" 10
     putStrLn "\n"
 
-    let patientData = patientName ++ " " ++ patientAge ++ " " ++ patientGender
+    let patientData = patientName ++ "-" ++ patientAge ++ "-" ++ patientGender
     if patientData `elem` splittedData
         then do
             let newListData = Data.Text.replace (pack (patientData ++ "\n")) (pack "") (pack listData)
